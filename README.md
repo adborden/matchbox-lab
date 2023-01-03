@@ -5,7 +5,13 @@ Dynamic iPXE boot configurations for the lab.
 
 ## Deploy
 
+Push configuration to matchbox server.
+
     $ make deploy
+
+Update assets with latest flatcar images.
+
+    $ make update
 
 _TODO: add this via ansible. adborden/matchbox is built for armv7 (raspberry
 pi)._

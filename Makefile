@@ -10,3 +10,6 @@ ignition/%.ign: ignition/%.yaml
 
 deploy: build
 	rsync -av --progress --delete --exclude '.*.swp' assets cloud generic groups ignition profiles ubuntu@matchbox.lab:/var/lib/matchbox/
+
+update:
+	bin/get-flatcar stable current $(PWD)/assets
