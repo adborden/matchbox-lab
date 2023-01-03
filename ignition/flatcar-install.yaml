@@ -26,7 +26,7 @@ storage:
           flatcar-install \
             -d /dev/nvme0n1 \
             -C stable \
-            -V 3227.2.0 \
+            -V 3374.2.1 \
             -b http://matchbox.lab:8080/assets/flatcar \
             -i ignition.json
           udevadm settle
