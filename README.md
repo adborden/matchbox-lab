@@ -5,8 +5,28 @@ Dynamic iPXE boot configurations for the lab.
 
 ## Deploy
 
-    $ ssh matchbox.lab
+    $ make deploy
 
+_TODO: add this via ansible. adborden/matchbox is built for armv7 (raspberry
+pi)._
+
+```
+[Unit]
+Description=Matchbox iPXE, Ignition, and boot configuration service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop %n
+ExecStartPre=-/usr/bin/docker rm %n
+#ExecStartPre=/usr/bin/docker pull quay.io/poseidon/matchbox:latest
+ExecStart=/usr/bin/docker run --rm -p 8080:8080 -v /var/lib/matchbox:/var/lib/matchbox:Z --name %n adborden/matchbox:latest -address=0.0.0.0:8080  -log-level=debug
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ### TFTP
 
@@ -29,4 +49,4 @@ addresses.
 
 ## References
 
-- [Matchbox](https://matchbox.psdn.io/matchbox/)
+- [Matchbox](https://matchbox.psdn.io/)
