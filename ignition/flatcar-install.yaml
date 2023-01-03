@@ -1,0 +1,39 @@
+---
+variant: flatcar
+version: 1.0.0
+systemd:
+  units:
+    - name: installer.service
+      enabled: true
+      contents: |
+        [Unit]
+        Requires=network-online.target
+        After=network-online.target
+        [Service]
+        Type=simple
+        ExecStart=/opt/installer
+        [Install]
+        WantedBy=multi-user.target
+storage:
+  files:
+    - path: /opt/installer
+      mode: 0500
+      contents:
+        inline: |
+          #!/bin/bash -ex
+          vgchange -an  # Deactivate any LVM volumes
+          curl --retry 10 --fail "http://matchbox.lab:8080/ignition?os=installed" -o ignition.json
+          flatcar-install \
+            -d /dev/nvme0n1 \
+            -C stable \
+            -V 3227.2.0 \
+            -b http://matchbox.lab:8080/assets/flatcar \
+            -i ignition.json
+          udevadm settle
+          systemctl reboot
+
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDgepEgS+Z+UuG2tSQzgn546V4M6mJtk+AfD3pgvRsj6rzAw4tyhSPGeJsXdlNkNi54cJiRzOZNuVXKn2ojc1y+cD88vfSnnEc+/DkfW0cDYowSgzIxfOaYzX5qj0FXh91eaFmg6+yx2AsHXXtWaesqM/4WpQq8d0VEMqhrelIjgBsLQONMoaj7adFARuhlMMbjqvW5aKZeuB8CGW5VprebwUPzRfEhvimO/IZ9+Z08qtxTXtWiUX9G/OeZ4+ddBkkO0XHFwCbVDa4AM/I6jo18hKz5EE9q4ZS7XOKVHElqbK/fg4bHBJqS5VM8QPMBEi+uGFjksSHxhWDWoMw62YC5 adborden@cano
