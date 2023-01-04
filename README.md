@@ -3,6 +3,11 @@
 Dynamic iPXE boot configurations for the lab.
 
 
+## Development
+
+    $ make build
+
+
 ## Deploy
 
 Push configuration to matchbox server.

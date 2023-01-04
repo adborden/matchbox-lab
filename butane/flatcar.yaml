@@ -1,0 +1,32 @@
+---
+variant: flatcar
+version: 1.0.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDgepEgS+Z+UuG2tSQzgn546V4M6mJtk+AfD3pgvRsj6rzAw4tyhSPGeJsXdlNkNi54cJiRzOZNuVXKn2ojc1y+cD88vfSnnEc+/DkfW0cDYowSgzIxfOaYzX5qj0FXh91eaFmg6+yx2AsHXXtWaesqM/4WpQq8d0VEMqhrelIjgBsLQONMoaj7adFARuhlMMbjqvW5aKZeuB8CGW5VprebwUPzRfEhvimO/IZ9+Z08qtxTXtWiUX9G/OeZ4+ddBkkO0XHFwCbVDa4AM/I6jo18hKz5EE9q4ZS7XOKVHElqbK/fg4bHBJqS5VM8QPMBEi+uGFjksSHxhWDWoMw62YC5 adborden@cano
+
+storage:
+  files:
+    - path: /etc/flatcar/update.conf
+      overwrite: true
+      contents:
+        local: etc_flatcar_update.conf
+
+systemd:
+  units:
+    - name: etcd-member.service
+      enabled: true
+      dropins:
+        - name: 20-etcd-member.conf
+          contents: |
+            [Service]
+            Environment="ETCD_IMAGE_TAG=v3.5.0"
+            ExecStart=
+            ExecStart=/usr/lib/coreos/etcd-wrapper --name="etcdserver"
+              --listen-peer-urls="http://192.168.8.3:2380"
+              --listen-client-urls="http://0.0.0.0:2379"
+              --initial-advertise-peer-urls="http://192.168.8.3:2380"
+              --initial-cluster="node-a=http://192.168.8.3:2380"
+              --advertise-client-urls="http://192.168.8.3:2379"
