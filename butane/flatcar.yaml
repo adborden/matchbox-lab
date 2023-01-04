@@ -22,11 +22,11 @@ systemd:
         - name: 20-etcd-member.conf
           contents: |
             [Service]
-            Environment="ETCD_IMAGE_TAG=v3.5.0"
+            Environment="ETCD_IMAGE_TAG=v3.1.5"
             ExecStart=
-            ExecStart=/usr/lib/coreos/etcd-wrapper --name="etcdserver"
-              --listen-peer-urls="http://192.168.8.3:2380"
-              --listen-client-urls="http://0.0.0.0:2379"
-              --initial-advertise-peer-urls="http://192.168.8.3:2380"
-              --initial-cluster="node-a=http://192.168.8.3:2380"
+            ExecStart=/usr/lib/coreos/etcd-wrapper --name="etcdserver" \
+              --listen-peer-urls="http://192.168.8.3:2380" \
+              --listen-client-urls="http://0.0.0.0:2379" \
+              --initial-advertise-peer-urls="http://192.168.8.3:2380" \
+              --initial-cluster="etcdserver=http://192.168.8.3:2380" \
               --advertise-client-urls="http://192.168.8.3:2379"
