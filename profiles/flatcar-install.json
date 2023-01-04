@@ -13,5 +13,5 @@
       "flatcar.autologin"
     ]
   },
-  "ignition_id": "flatcar-install.yaml"
+  "ignition_id": "flatcar-install.ign"
 }
