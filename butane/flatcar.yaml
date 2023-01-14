@@ -13,6 +13,74 @@ storage:
       overwrite: true
       contents:
         local: etc_flatcar_update.conf
+    - path: /home/core/.bashrc
+      overwrite: true
+      user:
+        name: core
+      group:
+        name: core
+      contents:
+        inline: |
+          . /usr/share/skel/.bashrc
+          export PATH=$HOME/.local/bin:$PATH
+    # Create a wrapper on locksmitctl to pickup etcd connection settings
+    - path: /home/core/.local/bin/locksmithctl
+      overwrite: true
+      mode: 0755
+      user:
+        name: core
+      group:
+        name: core
+      contents:
+        inline: |
+          . /etc/flatcar/update.conf
+          exec sudo LOCKSMITHCTL_ENDPOINT=$LOCKSMITHD_ENDPOINT LOCKSMITHCTL_ETCD_CAFILE=$LOCKSMITHD_ETCD_CAFILE LOCKSMITHCTL_ETCD_CERTFILE=$LOCKSMITHD_ETCD_CERTFILE LOCKSMITHCTL_ETCD_KEYFILE=$LOCKSMITHD_ETCD_KEYFILE /usr/bin/locksmithctl "$@"
+    # TODO run update-ca-certificates
+    - path: /etc/ssl/certs/etcd-ca.pem
+      overwrite: true
+      contents:
+        local: secrets/certificates/ca.pem
+    - path: /etc/ssl/certs/etcd/server.pem
+      overwrite: true
+      contents:
+        local: secrets/certificates/server.pem
+    # TODO distribute this via encrypted + authenticated channel
+    # etcd-wrapper mounts /etc/ssl/certs, so any keys need to be under this directory
+    - path: /etc/ssl/certs/etcd/server.key
+      overwrite: true
+      mode: 0600
+      user:
+        name: etcd
+      group:
+        name: etcd
+      contents:
+        local: secrets/certificates/server-key.pem
+    - path: /etc/ssl/certs/etcd/member.pem
+      overwrite: true
+      contents:
+        local: secrets/certificates/member.pem
+    # TODO distribute this via encrypted + authenticated channel
+    # etcd-wrapper mounts /etc/ssl/certs, so any keys need to be under this directory
+    - path: /etc/ssl/certs/etcd/member.key
+      overwrite: true
+      mode: 0600
+      user:
+        name: etcd
+      group:
+        name: etcd
+      contents:
+        local: secrets/certificates/member-key.pem
+
+    - path: /etc/ssl/certs/etcd/client.pem
+      overwrite: true
+      contents:
+        local: secrets/certificates/client.pem
+    # TODO distribute this via encrypted + authenticated channel
+    - path: /etc/ssl/private/client.key
+      overwrite: true
+      mode: 0600
+      contents:
+        local: secrets/certificates/client-key.pem
 
 systemd:
   units:
@@ -22,11 +90,18 @@ systemd:
         - name: 20-etcd-member.conf
           contents: |
             [Service]
-            Environment="ETCD_IMAGE_TAG=v3.4.23"
+            Environment="ETCD_IMAGE_TAG=v3.3.27"
             ExecStart=
             ExecStart=/usr/lib/coreos/etcd-wrapper --name="etcdserver" \
-              --listen-peer-urls="http://192.168.8.3:2380" \
-              --listen-client-urls="http://0.0.0.0:2379" \
-              --initial-advertise-peer-urls="http://192.168.8.3:2380" \
-              --initial-cluster="etcdserver=http://192.168.8.3:2380" \
-              --advertise-client-urls="http://192.168.8.3:2379"
+              --trusted-ca-file=/etc/ssl/certs/etcd-ca.pem \
+              --peer-cert-file=/etc/ssl/certs/etcd/member.pem \
+              --peer-key-file=/etc/ssl/certs/etcd/member.key \
+              --peer-client-cert-auth \
+              --cert-file=/etc/ssl/certs/etcd/server.pem \
+              --key-file=/etc/ssl/certs/etcd/server.key \
+              --client-cert-auth \
+              --listen-peer-urls="https://192.168.8.3:2380" \
+              --listen-client-urls="https://0.0.0.0:2379" \
+              --initial-advertise-peer-urls="https://192.168.8.3:2380" \
+              --initial-cluster="etcdserver=https://192.168.8.3:2380" \
+              --advertise-client-urls="https://192.168.8.3:2379"

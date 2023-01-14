@@ -1,0 +1,9 @@
+#!/bin/bash
+set -o errexit
+set -o pipefail
+set -o nounset
+
+uid=$(id --user)
+gid=$(id --group)
+
+docker run --user $uid:$gid --rm -i --volume $(pwd):/app -w /app --entrypoint cfssljson cfssl/cfssl:latest "$@"

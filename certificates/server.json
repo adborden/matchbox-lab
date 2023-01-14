@@ -1,0 +1,26 @@
+{
+    "CN": "etcd",
+    "hosts": [
+        "192.168.8.3",
+        "192.168.8.4",
+        "192.168.8.5",
+        "node-a",
+        "node-b",
+        "node-c",
+        "node-a.lab",
+        "node-b.lab",
+        "node-c.lab"
+    ],
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "C": "US",
+            "ST": "CA",
+            "L": "San Francisco"
+        }
+    ]
+}
+

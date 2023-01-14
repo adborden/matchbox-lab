@@ -5,6 +5,13 @@ Dynamic iPXE boot configurations for the lab.
 
 ## Development
 
+### Requirements
+
+- docker
+
+
+### Commands
+
     $ make build
 
 
@@ -58,6 +65,22 @@ tftp-root=/usr/lib/ipxe
 TODO: enable firewall to disable DHCP/DNS, we don't want it accidentally serving
 addresses.
 
+## Generating self-signed certificates
+
+Client certificate.
+
+    $ bin/cfssl gencert -ca=secrets/certificates/ca.pem -ca-key=secrets/certificates/ca-key.pem -config=certificates/ca-config.json -profile=client certificates/client.json | bin/cfssljson -bare secrets/certificates/client
+
+Server certificate.
+
+    $ bin/cfssl gencert -ca=secrets/certificates/ca.pem -ca-key=secrets/certificates/ca-key.pem -config=certificates/ca-config.json -profile=server certificates/server.json | bin/cfssljson -bare secrets/certificates/server
+
+Peer certificates.
+
+    $ bin/cfssl gencert -ca=secrets/certificates/ca.pem -ca-key=secrets/certificates/ca-key.pem -config=certificates/ca-config.json -profile=member certificates/member.json | bin/cfssljson -bare secrets/certificates/member
+
+
 ## References
 
 - [Matchbox](https://matchbox.psdn.io/)
+- [Tutorial: Install a Highly Available K3s Cluster at the Edge - The New Stack](https://thenewstack.io/tutorial-install-a-highly-available-k3s-cluster-at-the-edge/)
