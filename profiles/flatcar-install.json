@@ -2,9 +2,9 @@
   "id": "flatcar-install",
   "name": "Flatcar Linux install to disk",
   "boot": {
-    "kernel": "/assets/flatcar/3374.2.1/flatcar_production_pxe.vmlinuz",
+    "kernel": "/assets/flatcar/3374.2.2/flatcar_production_pxe.vmlinuz",
     "initrd": [
-      "/assets/flatcar/3374.2.1/flatcar_production_pxe_image.cpio.gz"
+      "/assets/flatcar/3374.2.2/flatcar_production_pxe_image.cpio.gz"
     ],
     "args": [
       "initrd=flatcar_production_pxe_image.cpio.gz",

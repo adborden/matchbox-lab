@@ -1,7 +1,7 @@
 .DELETE_ON_ERROR:
 .PHONY: build clean deploy update
 
-FLATCAR_VERSION := 3374.2.1
+FLATCAR_VERSION := 3374.2.2
 
 CONTAINER_LINUX_CONFIGS := $(wildcard butane/*.yaml)
 IGNITION_CONFIGS := $(patsubst butane/%.yaml, ignition/%.ign, $(CONTAINER_LINUX_CONFIGS))
