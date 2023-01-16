@@ -2,5 +2,7 @@
   "id": "stage-0",
   "name": "Flatcar Linux install",
   "profile": "flatcar-install",
-  "metadata": {}
+  "metadata": {
+    "flatcar_version": "3374.2.2"
+  }
 }

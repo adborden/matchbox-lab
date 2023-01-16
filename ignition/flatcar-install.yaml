@@ -22,7 +22,7 @@ storage:
         inline: |
           #!/bin/bash -ex
           vgchange -an  # Deactivate any LVM volumes
-          curl --retry 10 --fail "http://matchbox.lab:8080/ignition?os=installed" -o ignition.json
+          curl --retry 10 --fail "http://matchbox.lab:8080/ignition?os=installed&hostname={{.request.query.hostname}}" -o ignition.json
           flatcar-install \
             -d /dev/nvme0n1 \
             -C stable \

@@ -1,0 +1,14 @@
+{
+  "id": "node-a",
+  "name": "Flatcar Linux",
+  "profile": "flatcar",
+  "selector": {
+    "hostname": "node-a",
+    "os": "installed"
+  },
+  "metadata": {
+    "etcd_initial_cluster": "node-a=https://192.168.8.3:2380,node-b=https://192.168.8.4:2380,node-c=https://192.168.8.5:2380",
+    "etcd_name": "node-a",
+    "ipv4_address": "192.168.8.3"
+  }
+}

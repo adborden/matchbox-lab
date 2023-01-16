@@ -1,0 +1,229 @@
+---
+variant: flatcar
+version: 1.0.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDgepEgS+Z+UuG2tSQzgn546V4M6mJtk+AfD3pgvRsj6rzAw4tyhSPGeJsXdlNkNi54cJiRzOZNuVXKn2ojc1y+cD88vfSnnEc+/DkfW0cDYowSgzIxfOaYzX5qj0FXh91eaFmg6+yx2AsHXXtWaesqM/4WpQq8d0VEMqhrelIjgBsLQONMoaj7adFARuhlMMbjqvW5aKZeuB8CGW5VprebwUPzRfEhvimO/IZ9+Z08qtxTXtWiUX9G/OeZ4+ddBkkO0XHFwCbVDa4AM/I6jo18hKz5EE9q4ZS7XOKVHElqbK/fg4bHBJqS5VM8QPMBEi+uGFjksSHxhWDWoMw62YC5 adborden@cano
+
+storage:
+  files:
+    - path: /etc/flatcar/update.conf
+      overwrite: true
+      contents:
+        inline: |
+          REBOOT_STRATEGY=etcd-lock
+          LOCKSMITHD_ENDPOINT=https://{{.ipv4_address}}:2379
+          LOCKSMITHD_ETCD_CAFILE=/etc/ssl/certs/etcd-ca.pem
+          LOCKSMITHD_ETCD_CERTFILE=/etc/ssl/certs/etcd/client.pem
+          LOCKSMITHD_ETCD_KEYFILE=/etc/ssl/private/client.key
+
+    # TODO distribute via encrypted + authenticated channel
+    - path: /etc/k3s/secrets
+      overwrite: true
+      mode: 0600
+      contents:
+        # WARNING: for development only
+        inline: |
+          K3S_TOKEN="igDjKpzTMPmH96xF22JZXD1pDsnTWdETr9XIoDnGhP7rLruMSOeWHXaqDtjHEr7c"
+    - path: /opt/k3s-install.sh
+      mode: 0700
+      contents:
+        source: https://get.k3s.io
+    - path: /home/core/.bashrc
+      overwrite: true
+      user:
+        name: core
+      group:
+        name: core
+      contents:
+        inline: |
+          . /usr/share/skel/.bashrc
+          export PATH=$HOME/.local/bin:$PATH
+    # Create a wrapper on locksmitctl to pickup etcd connection settings
+    - path: /home/core/.local/bin/locksmithctl
+      overwrite: true
+      mode: 0755
+      user:
+        name: core
+      group:
+        name: core
+      contents:
+        inline: |
+          . /etc/flatcar/update.conf
+          exec sudo LOCKSMITHCTL_ENDPOINT=$LOCKSMITHD_ENDPOINT LOCKSMITHCTL_ETCD_CAFILE=$LOCKSMITHD_ETCD_CAFILE LOCKSMITHCTL_ETCD_CERTFILE=$LOCKSMITHD_ETCD_CERTFILE LOCKSMITHCTL_ETCD_KEYFILE=$LOCKSMITHD_ETCD_KEYFILE /usr/bin/locksmithctl "$@"
+    # TODO run update-ca-certificates
+    - path: /etc/ssl/certs/etcd-ca.pem
+      overwrite: true
+      contents:
+        inline: |
+          -----BEGIN CERTIFICATE-----
+          MIIB8DCCAZagAwIBAgIULHwGLIRkz5NkxVQciiZsA5JBc3MwCgYIKoZIzj0EAwIw
+          VjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNp
+          c2NvMREwDwYDVQQKEwhhMTRuLm5ldDEPMA0GA1UEAxMGbGFiIENBMB4XDTIzMDEw
+          NDIwNDkwMFoXDTI4MDEwMzIwNDkwMFowVjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+          AkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMREwDwYDVQQKEwhhMTRuLm5ldDEP
+          MA0GA1UEAxMGbGFiIENBMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEOWeK/dek
+          NOJM2NEWyxc+jocbigej6Zz1k5irh30cwD3f8smJBcq6BtxKmkV/Y1DKWhi0mPXD
+          MkSBJmlF63W/cqNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8w
+          HQYDVR0OBBYEFOg+P2Njt7HQ8aW9vaN02hx1Ff77MAoGCCqGSM49BAMCA0gAMEUC
+          IHkZTSIy9Ixr8pDaHghQjy50EaKbayMa7IpSH5zS7y1lAiEAoB0VqNAt7Iv75Eer
+          dMwu0nO7Kgy6KAj3tjrhNTOJo2Q=
+          -----END CERTIFICATE-----
+    - path: /etc/ssl/certs/etcd/server.pem
+      overwrite: true
+      contents:
+        inline: |
+          -----BEGIN CERTIFICATE-----
+          MIICdDCCAhmgAwIBAgIUXHJ1j4fanJZKNjVyfkV1uzxLJLEwCgYIKoZIzj0EAwIw
+          VjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNp
+          c2NvMREwDwYDVQQKEwhhMTRuLm5ldDEPMA0GA1UEAxMGbGFiIENBMB4XDTIzMDEx
+          NDAzMTkwMFoXDTI0MDExNDAzMTkwMFowQTELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+          AkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMQ0wCwYDVQQDEwRldGNkMFkwEwYH
+          KoZIzj0CAQYIKoZIzj0DAQcDQgAEhbbpKyO50asHH8Ug4x+XqxK299vyG+9likvF
+          KOthPz9J3S2t3NPoobR/GEV3jwrPw/7ynXxc7tAP2iaRanH41aOB2TCB1jAOBgNV
+          HQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1Ud
+          EwEB/wQCMAAwHQYDVR0OBBYEFLuikDp0RYBDOOpDPhj0aqO4bip9MB8GA1UdIwQY
+          MBaAFOg+P2Njt7HQ8aW9vaN02hx1Ff77MFcGA1UdEQRQME6CBm5vZGUtYYIGbm9k
+          ZS1iggZub2RlLWOCCm5vZGUtYS5sYWKCCm5vZGUtYi5sYWKCCm5vZGUtYy5sYWKH
+          BMCoCAOHBMCoCASHBMCoCAUwCgYIKoZIzj0EAwIDSQAwRgIhAMzPaWNoBgAnamLc
+          3FYLCicm9m1wXYIK8nIjpqemDU6oAiEAlX2rzL0EESr+FTh2RZI+QUOI9vntfrGx
+          pwpEwU5LHoM=
+          -----END CERTIFICATE-----
+    # TODO distribute this via encrypted + authenticated channel
+    # etcd-wrapper mounts /etc/ssl/certs, so any keys need to be under this directory
+    - path: /etc/ssl/certs/etcd/server.key
+      overwrite: true
+      mode: 0600
+      user:
+        name: etcd
+      group:
+        name: etcd
+      contents:
+        # WARNING: for development only
+        inline: |
+          -----BEGIN EC PRIVATE KEY-----
+          MHcCAQEEILcFnfHEb00+hGt5hzZJ/SDxBYennsDmDQd9idRambjpoAoGCCqGSM49
+          AwEHoUQDQgAEhbbpKyO50asHH8Ug4x+XqxK299vyG+9likvFKOthPz9J3S2t3NPo
+          obR/GEV3jwrPw/7ynXxc7tAP2iaRanH41Q==
+          -----END EC PRIVATE KEY-----
+    - path: /etc/ssl/certs/etcd/member.pem
+      overwrite: true
+      contents:
+        inline: |
+          -----BEGIN CERTIFICATE-----
+          MIICczCCAhmgAwIBAgIUKKJpPY1QqXICxk9GwXnxFh/rP8EwCgYIKoZIzj0EAwIw
+          VjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNp
+          c2NvMREwDwYDVQQKEwhhMTRuLm5ldDEPMA0GA1UEAxMGbGFiIENBMB4XDTIzMDEw
+          NTA2NTIwMFoXDTI0MDEwNTA2NTIwMFowQTELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+          AkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMQ0wCwYDVQQDEwRldGNkMFkwEwYH
+          KoZIzj0CAQYIKoZIzj0DAQcDQgAEhgImFNBDUYPQxIFpH1BT4sT6EseHkIcNXgf2
+          8SkNpefinW1OV74YxlhqP/HbrtbP7BF31YmLCImUt1aRtiuDuKOB2TCB1jAOBgNV
+          HQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1Ud
+          EwEB/wQCMAAwHQYDVR0OBBYEFOHnjKIAyRxeFroOAIcKVC3kLmNpMB8GA1UdIwQY
+          MBaAFOg+P2Njt7HQ8aW9vaN02hx1Ff77MFcGA1UdEQRQME6CBm5vZGUtYYIGbm9k
+          ZS1iggZub2RlLWOCCm5vZGUtYS5sYWKCCm5vZGUtYi5sYWKCCm5vZGUtYy5sYWKH
+          BMCoCAOHBMCoCASHBMCoCAUwCgYIKoZIzj0EAwIDSAAwRQIgMoIkAWdF5P4EwF15
+          xo73aXmAj69DIp2u/dwCzPLnseUCIQCEgm+7VV8YI5lW6XIgojFHxhRVUJzPtEli
+          krNEKi9xvw==
+          -----END CERTIFICATE-----
+    # TODO distribute this via encrypted + authenticated channel
+    # etcd-wrapper mounts /etc/ssl/certs, so any keys need to be under this directory
+    - path: /etc/ssl/certs/etcd/member.key
+      overwrite: true
+      mode: 0600
+      user:
+        name: etcd
+      group:
+        name: etcd
+      contents:
+        # WARNING: for development only
+        inline: |
+          -----BEGIN EC PRIVATE KEY-----
+          MHcCAQEEIIgnqaGQSIV5m0bWXjSojALExzj0qUI5TDnspaUcPmnRoAoGCCqGSM49
+          AwEHoUQDQgAEhgImFNBDUYPQxIFpH1BT4sT6EseHkIcNXgf28SkNpefinW1OV74Y
+          xlhqP/HbrtbP7BF31YmLCImUt1aRtiuDuA==
+          -----END EC PRIVATE KEY-----
+    - path: /etc/ssl/certs/etcd/client.pem
+      overwrite: true
+      contents:
+        inline: |
+          -----BEGIN CERTIFICATE-----
+          MIICIDCCAcWgAwIBAgIUN+rcyqI1o3QUGjyJ+895DBfRXOYwCgYIKoZIzj0EAwIw
+          VjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNp
+          c2NvMREwDwYDVQQKEwhhMTRuLm5ldDEPMA0GA1UEAxMGbGFiIENBMB4XDTIzMDEx
+          NDAxNTQwMFoXDTI0MDExNDAxNTQwMFowQzELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+          AkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMQ8wDQYDVQQDEwZjbGllbnQwWTAT
+          BgcqhkjOPQIBBggqhkjOPQMBBwNCAATp8IadgfZUo2lX1Kkppg4SeUBjEe4Fcpr8
+          zLVeZ3ClxY/j2RCVR66spA6YZ1qJ3KaF3v4ugRRSmu08mje594aIo4GDMIGAMA4G
+          A1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAA
+          MB0GA1UdDgQWBBSy5uEy9PDg8wkqJqdzJY985PXeizAfBgNVHSMEGDAWgBToPj9j
+          Y7ex0PGlvb2jdNocdRX++zALBgNVHREEBDACggAwCgYIKoZIzj0EAwIDSQAwRgIh
+          APgR62e88W8BZctV0D0FPsSMjQJO6QdzRbvO9+IX2O0mAiEA/EBz2XPpXVtGK0bm
+          Ss5R0Yr+ZgNNKrhN4Sw5C1motcg=
+          -----END CERTIFICATE-----
+
+    # TODO distribute this via encrypted + authenticated channel
+    - path: /etc/ssl/private/client.key
+      overwrite: true
+      mode: 0600
+      contents:
+        # WARNING: for development only
+        inline: |
+          -----BEGIN EC PRIVATE KEY-----
+          MHcCAQEEICywCmeJGJhUbLYtpo08bWUaYOJ2sj7ncdW2WOS4acNVoAoGCCqGSM49
+          AwEHoUQDQgAE6fCGnYH2VKNpV9SpKaYOEnlAYxHuBXKa/My1XmdwpcWP49kQlUeu
+          rKQOmGdaidymhd7+LoEUUprtPJo3ufeGiA==
+          -----END EC PRIVATE KEY-----
+
+
+systemd:
+  units:
+    - name: etcd-member.service
+      enabled: true
+      dropins:
+        - name: 20-etcd-member.conf
+          contents: |
+            [Service]
+            Environment="ETCD_IMAGE_TAG=v3.3.27"
+            ExecStart=
+            ExecStart=/usr/lib/coreos/etcd-wrapper \
+              --name={{.etcd_name}} \
+              --trusted-ca-file=/etc/ssl/certs/etcd-ca.pem \
+              --peer-cert-file=/etc/ssl/certs/etcd/member.pem \
+              --peer-key-file=/etc/ssl/certs/etcd/member.key \
+              --peer-client-cert-auth \
+              --cert-file=/etc/ssl/certs/etcd/server.pem \
+              --key-file=/etc/ssl/certs/etcd/server.key \
+              --client-cert-auth \
+              --initial-cluster="{{.etcd_initial_cluster}}" \
+              --initial-advertise-peer-urls="https://{{.ipv4_address}}:2380" \
+              --listen-peer-urls="https://{{.ipv4_address}}:2380" \
+              --listen-client-urls="https://0.0.0.0:2379" \
+              --advertise-client-urls="https://{{.ipv4_address}}:2379"
+
+    - name: k3s-installer.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install K3s
+        Wants=network-online.target
+        Wants=etcd-member.service
+        After=etcd-member.service
+        After=network.target network-online.target
+        ConditionPathExists=/opt/k3s-install.sh
+        ConditionPathExists=!/opt/bin/k3s
+
+        [Service]
+        Type=simple
+        #Environment=K3S_DATASTORE_ENDPOINT="{{.etcd_initial_cluster}}"
+        Environment=K3S_DATASTORE_ENDPOINT="https://{{.ipv4_address}}:2379"
+        Environment=K3S_DATASTORE_CAFILE="/etc/ssl/certs/etcd-ca.pem"
+        Environment=K3S_DATASTORE_CERTFILE="/etc/ssl/certs/etcd/client.pem"
+        Environment=K3S_DATASTORE_KEYFILE="/etc/ssl/private/client.key"
+        EnvironmentFile=/etc/k3s/secrets
+        ExecStart=/opt/k3s-install.sh
+
+        [Install]
+        WantedBy=multi-user.target

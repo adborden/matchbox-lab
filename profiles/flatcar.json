@@ -8,10 +8,10 @@
     ],
     "args": [
       "initrd=flatcar_production_pxe_image.cpio.gz",
-      "flatcar.config.url=http://matchbox.lab:8080/ignition?uuid=${uuid}&mac=${mac:hexhyp}",
+      "flatcar.config.url=http://matchbox.lab:8080/ignition?uuid=${uuid}&mac=${mac:hexhyp}&hostname=${hostname}",
       "flatcar.first_boot=yes",
       "flatcar.autologin"
     ]
   },
-  "ignition_id": "flatcar.ign"
+  "ignition_id": "flatcar.yaml"
 }

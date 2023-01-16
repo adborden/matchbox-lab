@@ -8,6 +8,7 @@ Dynamic iPXE boot configurations for the lab.
 ### Requirements
 
 - docker
+- GNU Make
 
 
 ### Commands
@@ -79,6 +80,9 @@ Peer certificates.
 
     $ bin/cfssl gencert -ca=secrets/certificates/ca.pem -ca-key=secrets/certificates/ca-key.pem -config=certificates/ca-config.json -profile=member certificates/member.json | bin/cfssljson -bare secrets/certificates/member
 
+## TODO
+
+- [ ] shutdown node, k3s and containerd timeout at 90s, delaying shutdown
 
 ## References
 
